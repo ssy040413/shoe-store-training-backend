@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xys.mapper.TypesMapper">
+
+    <!-- 结果映射：类型信息 -->
+    <resultMap id="BaseResultMap" type="com.xys.entity.Types">
+        <id property="typeId" column="type_id"/>
+        <result property="typeName" column="type_name"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <!-- 查询所有类型 -->
+    <select id="findAll" resultMap="BaseResultMap">
+        SELECT * FROM types ORDER BY type_id
+    </select>
+
+    <!-- 根据ID查询类型 -->
+    <select id="findById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT * FROM types WHERE type_id = #{typeId}
+    </select>
+
+    <!-- 添加类型 -->
+    <insert id="insert" parameterType="com.xys.entity.Types" useGeneratedKeys="true" keyProperty="typeId">
+        INSERT INTO types (type_name, status) 
+        VALUES (#{typeName}, #{status})
+    </insert>
+
+    <!-- 更新类型 -->
+    <update id="update" parameterType="com.xys.entity.Types">
+        UPDATE types SET 
+            type_name = #{typeName}, 
+            status = #{status} 
+        WHERE type_id = #{typeId}
+    </update>
+
+    <!-- 删除类型 -->
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM types WHERE type_id = #{typeId}
+    </delete>
+
+    <!-- 查询启用状态的类型 -->
+    <select id="findActiveTypes" resultMap="BaseResultMap">
+        SELECT * FROM types WHERE status = '1' ORDER BY type_id
+    </select>
+
+</mapper>

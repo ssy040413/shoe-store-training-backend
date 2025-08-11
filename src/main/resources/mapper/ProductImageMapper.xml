@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xys.mapper.ProductImageMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.xys.entity.ProductImage">
+        <id column="image_id" property="imageId" jdbcType="INTEGER"/>
+        <result column="shoe_id" property="shoeId" jdbcType="BIGINT"/>
+        <result column="image_url" property="imageUrl" jdbcType="VARCHAR"/>
+        <result column="image_name" property="imageName" jdbcType="VARCHAR"/>
+        <result column="image_type" property="imageType" jdbcType="VARCHAR"/>
+        <result column="sort_order" property="sortOrder" jdbcType="INTEGER"/>
+        <result column="is_main" property="isMain" jdbcType="TINYINT"/>
+        <result column="status" property="status" jdbcType="TINYINT"/>
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 基础列 -->
+    <sql id="Base_Column_List">
+        image_id, shoe_id, image_url, image_name, image_type, sort_order, is_main, status, created_at, updated_at
+    </sql>
+
+    <!-- 根据商品ID查询图片列表 -->
+    <select id="findByShoeId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM product_images
+        WHERE shoe_id = #{shoeId} AND status = 1
+        ORDER BY is_main DESC, sort_order ASC, created_at ASC
+    </select>
+
+    <!-- 根据商品ID查询主图 -->
+    <select id="findMainImageByShoeId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM product_images
+        WHERE shoe_id = #{shoeId} AND is_main = 1 AND status = 1
+        LIMIT 1
+    </select>
+
+    <!-- 根据ID查询图片 -->
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM product_images
+        WHERE image_id = #{imageId}
+    </select>
+
+    <!-- 插入商品图片 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="imageId">
+        INSERT INTO product_images (
+            shoe_id, image_url, image_name, image_type, sort_order, is_main, status
+        ) VALUES (
+            #{shoeId}, #{imageUrl}, #{imageName}, #{imageType}, #{sortOrder}, #{isMain}, #{status}
+        )
+    </insert>
+
+    <!-- 批量插入商品图片 -->
+    <insert id="insertBatch" useGeneratedKeys="true" keyProperty="imageId">
+        INSERT INTO product_images (
+            shoe_id, image_url, image_name, image_type, sort_order, is_main, status
+        ) VALUES
+        <foreach collection="images" item="image" separator=",">
+            (#{image.shoeId}, #{image.imageUrl}, #{image.imageName}, #{image.imageType}, 
+             #{image.sortOrder}, #{image.isMain}, #{image.status})
+        </foreach>
+    </insert>
+
+    <!-- 更新商品图片 -->
+    <update id="update">
+        UPDATE product_images
+        SET image_url = #{imageUrl},
+            image_name = #{imageName},
+            image_type = #{imageType},
+            sort_order = #{sortOrder},
+            is_main = #{isMain},
+            status = #{status}
+        WHERE image_id = #{imageId}
+    </update>
+
+    <!-- 根据ID删除图片 -->
+    <delete id="deleteById">
+        DELETE FROM product_images WHERE image_id = #{imageId}
+    </delete>
+
+    <!-- 根据商品ID删除所有图片 -->
+    <delete id="deleteByShoeId">
+        DELETE FROM product_images WHERE shoe_id = #{shoeId}
+    </delete>
+
+    <!-- 批量删除图片 -->
+    <delete id="deleteByIds">
+        DELETE FROM product_images 
+        WHERE image_id IN
+        <foreach collection="imageIds" item="imageId" open="(" separator="," close=")">
+            #{imageId}
+        </foreach>
+    </delete>
+
+    <!-- 清除商品的主图标识 -->
+    <update id="clearMainImage">
+        UPDATE product_images 
+        SET is_main = 0 
+        WHERE shoe_id = #{shoeId}
+    </update>
+
+    <!-- 设置为主图 -->
+    <update id="setAsMainImage">
+        UPDATE product_images 
+        SET is_main = 1 
+        WHERE image_id = #{imageId}
+    </update>
+
+    <!-- 更新图片排序 -->
+    <update id="updateSortOrder">
+        UPDATE product_images 
+        SET sort_order = #{sortOrder} 
+        WHERE image_id = #{imageId}
+    </update>
+
+</mapper>

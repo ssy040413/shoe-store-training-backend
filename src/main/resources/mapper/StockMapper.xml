@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xys.mapper.StockMapper">
+
+    <!-- 结果映射：库存信息 -->
+    <resultMap id="BaseResultMap" type="com.xys.entity.Stock">
+        <id property="stockId" column="stock_id"/>
+        <result property="shoeId" column="shoe_id"/>
+        <result property="sizeId" column="size_id"/>
+        <result property="stockQuantity" column="stock_quantity"/>
+    </resultMap>
+
+    <!-- 结果映射：包含关联信息的库存 -->
+    <resultMap id="StockWithAssociationsResultMap" type="com.xys.entity.Stock" extends="BaseResultMap">
+        <!-- 关联鞋子信息 -->
+        <association property="shoe" javaType="com.xys.entity.Shoes">
+            <id property="shoeId" column="shoe_id"/>
+            <result property="name" column="shoe_name"/>
+            <result property="serialNumber" column="serial_number"/>
+        </association>
+        
+        <!-- 关联尺寸信息 -->
+        <association property="size" javaType="com.xys.entity.Sizes">
+            <id property="sizeId" column="size_id"/>
+            <result property="shoeSize" column="shoe_size"/>
+        </association>
+    </resultMap>
+
+    <!-- 查询所有库存（包含关联信息） -->
+    <select id="findAll" resultMap="StockWithAssociationsResultMap">
+        SELECT st.shoe_id, st.size_id, st.stock_quantity, 
+               s.name as shoe_name, s.serial_number, 
+               sz.shoe_size 
+        FROM stock st 
+        LEFT JOIN shoes s ON st.shoe_id = s.shoe_id 
+        LEFT JOIN sizes sz ON st.size_id = sz.size_id 
+        ORDER BY st.shoe_id, st.size_id
+    </select>
+
+    <!-- 根据产品ID和尺寸ID查询库存 -->
+    <select id="findByProductAndSize" resultMap="StockWithAssociationsResultMap">
+        SELECT st.shoe_id, st.size_id, st.stock_quantity, 
+               s.name as shoe_name, s.serial_number, 
+               sz.shoe_size 
+        FROM stock st 
+        LEFT JOIN shoes s ON st.shoe_id = s.shoe_id 
+        LEFT JOIN sizes sz ON st.size_id = sz.size_id 
+        WHERE st.shoe_id = #{shoeId} AND st.size_id = #{sizeId}
+    </select>
+
+    <!-- 添加库存 -->
+    <insert id="insert" parameterType="com.xys.entity.Stock" useGeneratedKeys="true" keyProperty="stockId">
+        INSERT INTO stock (shoe_id, size_id, stock_quantity)
+        VALUES (#{shoeId}, #{sizeId}, #{stockQuantity})
+    </insert>
+
+    <!-- 更新库存 -->
+    <update id="update" parameterType="com.xys.entity.Stock">
+        UPDATE stock
+        SET stock_quantity = #{stockQuantity}
+        WHERE shoe_id = #{shoeId} AND size_id = #{sizeId}
+    </update>
+
+    <!-- 根据产品ID和尺寸ID删除库存 -->
+    <delete id="deleteByProductAndSize">
+        DELETE FROM stock WHERE shoe_id = #{shoeId} AND size_id = #{sizeId}
+    </delete>
+
+    <!-- 根据产品ID查询库存 -->
+    <select id="findByProductId" resultMap="StockWithAssociationsResultMap">
+        SELECT st.shoe_id, st.size_id, st.stock_quantity, 
+               s.name as shoe_name, s.serial_number, 
+               sz.shoe_size 
+        FROM stock st 
+        LEFT JOIN shoes s ON st.shoe_id = s.shoe_id 
+        LEFT JOIN sizes sz ON st.size_id = sz.size_id 
+        WHERE st.shoe_id = #{shoeId}
+        ORDER BY st.size_id
+    </select>
+
+</mapper>

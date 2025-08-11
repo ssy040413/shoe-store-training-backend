@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xys.mapper.OrderMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="OrderResultMap" type="com.xys.entity.Order">
+        <id property="orderId" column="order_id"/>
+        <result property="orderSn" column="order_sn"/>
+        <result property="userId" column="user_id"/>
+        <result property="totalAmount" column="total_amount"/>
+        <result property="payAmount" column="pay_amount"/>
+        <result property="status" column="status"/>
+        <result property="receiverName" column="receiver_name"/>
+        <result property="receiverPhone" column="receiver_phone"/>
+        <result property="receiverAddress" column="receiver_address"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <!-- 关联订单详情 -->
+        <collection property="orderItems" ofType="com.xys.entity.OrderItem">
+            <id property="itemId" column="item_id"/>
+            <result property="orderId" column="order_id"/>
+            <result property="shoeId" column="shoe_id"/>
+            <result property="productSku" column="product_sku"/>
+            <result property="productName" column="product_name"/>
+            <result property="productImage" column="product_image"/>
+            <result property="productPrice" column="product_price"/>
+            <result property="quantity" column="quantity"/>
+            <result property="totalPrice" column="total_price"/>
+        </collection>
+    </resultMap>
+
+    <!-- 插入订单 -->
+    <insert id="insertOrder" parameterType="com.xys.entity.Order" useGeneratedKeys="true" keyProperty="orderId">
+        INSERT INTO orders (order_sn, user_id, total_amount, pay_amount, status, 
+                           receiver_name, receiver_phone, receiver_address)
+        VALUES (#{orderSn}, #{userId}, #{totalAmount}, #{payAmount}, #{status}, 
+                #{receiverName}, #{receiverPhone}, #{receiverAddress})
+    </insert>
+
+    <!-- 根据订单ID查询订单 -->
+    <select id="selectOrderById" resultMap="OrderResultMap">
+        SELECT o.*, oi.item_id, oi.shoe_id, oi.product_sku, oi.product_name, 
+               oi.product_image, oi.product_price, oi.quantity, oi.total_price
+        FROM orders o
+        LEFT JOIN order_items oi ON o.order_id = oi.order_id
+        WHERE o.order_id = #{orderId}
+    </select>
+
+    <!-- 根据订单编号查询订单 -->
+    <select id="selectOrderByOrderSn" resultMap="OrderResultMap">
+        SELECT o.*, oi.item_id, oi.shoe_id, oi.product_sku, oi.product_name, 
+               oi.product_image, oi.product_price, oi.quantity, oi.total_price
+        FROM orders o
+        LEFT JOIN order_items oi ON o.order_id = oi.order_id
+        WHERE o.order_sn = #{orderSn}
+    </select>
+
+    <!-- 根据用户ID查询订单列表 -->
+    <select id="selectOrdersByUserId" resultType="com.xys.entity.Order">
+        SELECT order_id, order_sn, user_id, total_amount, pay_amount, status, 
+               receiver_name, receiver_phone, receiver_address, created_at, updated_at
+        FROM orders
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 根据状态查询订单列表 -->
+    <select id="selectOrdersByStatus" resultType="com.xys.entity.Order">
+        SELECT order_id, order_sn, user_id, total_amount, pay_amount, status, 
+               receiver_name, receiver_phone, receiver_address, created_at, updated_at
+        FROM orders
+        WHERE status = #{status}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 查询所有订单（分页） -->
+    <select id="selectAllOrders" resultType="com.xys.entity.Order">
+        SELECT order_id, order_sn, user_id, total_amount, pay_amount, status, 
+               receiver_name, receiver_phone, receiver_address, created_at, updated_at
+        FROM orders
+        ORDER BY created_at DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 统计订单总数 -->
+    <select id="countOrders" resultType="int">
+        SELECT COUNT(*) FROM orders
+    </select>
+
+    <!-- 根据用户ID统计订单数 -->
+    <select id="countOrdersByUserId" resultType="int">
+        SELECT COUNT(*) FROM orders WHERE user_id = #{userId}
+    </select>
+
+    <!-- 根据状态统计订单数 -->
+    <select id="countOrdersByStatus" resultType="int">
+        SELECT COUNT(*) FROM orders WHERE status = #{status}
+    </select>
+
+    <!-- 更新订单状态 -->
+    <update id="updateOrderStatus">
+        UPDATE orders 
+        SET status = #{status}, updated_at = CURRENT_TIMESTAMP
+        WHERE order_id = #{orderId}
+    </update>
+
+    <!-- 更新订单信息 -->
+    <update id="updateOrder" parameterType="com.xys.entity.Order">
+        UPDATE orders 
+        SET order_sn = #{orderSn},
+            user_id = #{userId},
+            total_amount = #{totalAmount},
+            pay_amount = #{payAmount},
+            status = #{status},
+            receiver_name = #{receiverName},
+            receiver_phone = #{receiverPhone},
+            receiver_address = #{receiverAddress},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE order_id = #{orderId}
+    </update>
+
+    <!-- 删除订单 -->
+    <delete id="deleteOrder">
+        DELETE FROM orders WHERE order_id = #{orderId}
+    </delete>
+
+    <!-- 根据条件搜索订单 -->
+    <select id="searchOrders" resultType="com.xys.entity.Order">
+        SELECT order_id, order_sn, user_id, total_amount, pay_amount, status, 
+               receiver_name, receiver_phone, receiver_address, created_at, updated_at
+        FROM orders
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (order_sn LIKE CONCAT('%', #{keyword}, '%') 
+                     OR receiver_name LIKE CONCAT('%', #{keyword}, '%')
+                     OR receiver_phone LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY created_at DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 根据条件统计搜索结果数量 -->
+    <select id="countSearchOrders" resultType="int">
+        SELECT COUNT(*)
+        FROM orders
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (order_sn LIKE CONCAT('%', #{keyword}, '%') 
+                     OR receiver_name LIKE CONCAT('%', #{keyword}, '%')
+                     OR receiver_phone LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+
+</mapper>

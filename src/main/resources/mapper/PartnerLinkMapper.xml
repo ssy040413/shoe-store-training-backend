@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xys.mapper.PartnerLinkMapper">
+
+    <!-- 结果映射：合作链接信息 -->
+    <resultMap id="BaseResultMap" type="com.xys.entity.PartnerLink">
+        <id property="id" column="id"/>
+        <result property="linkName" column="link_name"/>
+        <result property="linkUrl" column="link_url"/>
+        <result property="logoUrl" column="logo_url"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 查询所有合作链接 (无任何条件) -->
+    <select id="findAll" resultMap="BaseResultMap">
+        SELECT * FROM partner_links ORDER BY sort_order ASC, id DESC
+    </select>
+
+    <!-- 新增一个合作链接 -->
+    <insert id="insert" parameterType="com.xys.entity.PartnerLink" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO partner_links(link_name, link_url, logo_url, sort_order)
+        VALUES(#{linkName}, #{linkUrl}, #{logoUrl}, #{sortOrder})
+    </insert>
+
+    <!-- 更新合作链接 -->
+    <update id="updateById" parameterType="com.xys.entity.PartnerLink">
+        UPDATE partner_links SET 
+            link_name = #{linkName}, 
+            link_url = #{linkUrl},
+            logo_url = #{logoUrl}, 
+            sort_order = #{sortOrder}, 
+            updated_at = NOW() 
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID删除一个合作链接 -->
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM partner_links WHERE id = #{id}
+    </delete>
+
+    <!-- 批量删除 -->
+    <delete id="deleteBatchByIds">
+        DELETE FROM partner_links WHERE id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

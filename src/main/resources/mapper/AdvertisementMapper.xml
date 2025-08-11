@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xys.mapper.AdvertisementMapper">
+
+    <!-- 结果映射：广告信息 -->
+    <resultMap id="BaseResultMap" type="com.xys.entity.Advertisement">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="imageUrl" column="image_url"/>
+        <result property="linkUrl" column="link_url"/>
+        <result property="position" column="position"/>
+        <result property="status" column="status"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 根据关键词进行动态分页查询 -->
+    <select id="findByKeyword" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT * FROM advertisements
+        <where>
+            <if test="keyword != null and keyword.trim() != ''">
+                title LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+        </where>
+        ORDER BY sort_order ASC, id DESC
+    </select>
+
+    <!-- 新增一个广告 -->
+    <insert id="insert" parameterType="com.xys.entity.Advertisement" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO advertisements(title, image_url, link_url, position, status, sort_order, start_time, end_time)
+        VALUES(#{title}, #{imageUrl}, #{linkUrl}, #{position}, #{status}, #{sortOrder}, #{startTime}, #{endTime})
+    </insert>
+
+    <!-- 根据ID删除一个广告 -->
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM advertisements WHERE id = #{id}
+    </delete>
+
+    <!-- 更新广告 -->
+    <update id="updateById" parameterType="com.xys.entity.Advertisement">
+        UPDATE advertisements SET 
+            title = #{title}, 
+            image_url = #{imageUrl}, 
+            link_url = #{linkUrl},
+            position = #{position}, 
+            status = #{status}, 
+            sort_order = #{sortOrder},
+            start_time = #{startTime}, 
+            end_time = #{endTime}, 
+            updated_at = NOW() 
+        WHERE id = #{id}
+    </update>
+
+    <!-- 批量删除 -->
+    <delete id="deleteBatchByIds">
+        DELETE FROM advertisements WHERE id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

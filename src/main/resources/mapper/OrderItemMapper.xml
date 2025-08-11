@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xys.mapper.OrderItemMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="OrderItemResultMap" type="com.xys.entity.OrderItem">
+        <id property="itemId" column="item_id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="shoeId" column="shoe_id"/>
+        <result property="productSku" column="product_sku"/>
+        <result property="productName" column="product_name"/>
+        <result property="productImage" column="product_image"/>
+        <result property="productPrice" column="product_price"/>
+        <result property="quantity" column="quantity"/>
+        <result property="totalPrice" column="total_price"/>
+    </resultMap>
+
+    <!-- 插入订单详情 -->
+    <insert id="insertOrderItem" parameterType="com.xys.entity.OrderItem" useGeneratedKeys="true" keyProperty="itemId">
+        INSERT INTO order_items (order_id, shoe_id, product_sku, product_name, 
+                                product_image, product_price, quantity, total_price)
+        VALUES (#{orderId}, #{shoeId}, #{productSku}, #{productName}, 
+                #{productImage}, #{productPrice}, #{quantity}, #{totalPrice})
+    </insert>
+
+    <!-- 批量插入订单详情 -->
+    <insert id="insertOrderItems" parameterType="java.util.List">
+        INSERT INTO order_items (order_id, shoe_id, product_sku, product_name, 
+                                product_image, product_price, quantity, total_price)
+        VALUES
+        <foreach collection="orderItems" item="item" separator=",">
+            (#{item.orderId}, #{item.shoeId}, #{item.productSku}, #{item.productName}, 
+             #{item.productImage}, #{item.productPrice}, #{item.quantity}, #{item.totalPrice})
+        </foreach>
+    </insert>
+
+    <!-- 根据详情ID查询订单详情 -->
+    <select id="selectOrderItemById" resultMap="OrderItemResultMap">
+        SELECT item_id, order_id, shoe_id, product_sku, product_name, 
+               product_image, product_price, quantity, total_price
+        FROM order_items
+        WHERE item_id = #{itemId}
+    </select>
+
+    <!-- 根据订单ID查询订单详情列表 -->
+    <select id="selectOrderItemsByOrderId" resultMap="OrderItemResultMap">
+        SELECT item_id, order_id, shoe_id, product_sku, product_name, 
+               product_image, product_price, quantity, total_price
+        FROM order_items
+        WHERE order_id = #{orderId}
+        ORDER BY item_id
+    </select>
+
+    <!-- 根据商品ID查询订单详情列表 -->
+    <select id="selectOrderItemsByShoeId" resultMap="OrderItemResultMap">
+        SELECT item_id, order_id, shoe_id, product_sku, product_name, 
+               product_image, product_price, quantity, total_price
+        FROM order_items
+        WHERE shoe_id = #{shoeId}
+        ORDER BY item_id DESC
+    </select>
+
+    <!-- 更新订单详情 -->
+    <update id="updateOrderItem" parameterType="com.xys.entity.OrderItem">
+        UPDATE order_items 
+        SET order_id = #{orderId},
+            shoe_id = #{shoeId},
+            product_sku = #{productSku},
+            product_name = #{productName},
+            product_image = #{productImage},
+            product_price = #{productPrice},
+            quantity = #{quantity},
+            total_price = #{totalPrice}
+        WHERE item_id = #{itemId}
+    </update>
+
+    <!-- 删除订单详情 -->
+    <delete id="deleteOrderItem">
+        DELETE FROM order_items WHERE item_id = #{itemId}
+    </delete>
+
+    <!-- 根据订单ID删除所有订单详情 -->
+    <delete id="deleteOrderItemsByOrderId">
+        DELETE FROM order_items WHERE order_id = #{orderId}
+    </delete>
+
+    <!-- 统计订单详情数量 -->
+    <select id="countOrderItemsByOrderId" resultType="int">
+        SELECT COUNT(*) FROM order_items WHERE order_id = #{orderId}
+    </select>
+
+</mapper>

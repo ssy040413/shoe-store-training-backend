@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xys.mapper.UserMapper">
+
+    <!-- 结果映射：用户信息 -->
+    <resultMap id="BaseResultMap" type="com.xys.entity.User">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="nickname" column="nickname"/>
+        <result property="email" column="email"/>
+        <result property="phone" column="phone"/>
+        <result property="avatarUrl" column="avatar_url"/>
+        <result property="gender" column="gender"/>
+        <result property="status" column="status"/>
+        <result property="lastLoginAt" column="last_login_at"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 查询所有用户 (为了安全，不查询密码字段) -->
+    <select id="findAll" resultMap="BaseResultMap">
+        SELECT id, username, nickname, email, phone, avatar_url, gender, status, last_login_at, created_at, updated_at 
+        FROM users
+    </select>
+
+    <!-- 根据ID查询单个用户 (同样不查询密码) -->
+    <select id="findById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT id, username, nickname, email, phone, avatar_url, gender, status, last_login_at, created_at, updated_at 
+        FROM users 
+        WHERE id = #{id}
+    </select>
+
+    <!-- 使用动态SQL进行多条件分页查询 -->
+    <select id="findByConditions" resultMap="BaseResultMap">
+        SELECT id, username, nickname, email, phone, avatar_url, gender, status, last_login_at, created_at, updated_at
+        FROM users
+        <where>
+            <if test="keyword != null and keyword.trim() != ''">
+                AND (username LIKE CONCAT('%', #{keyword}, '%') OR nickname LIKE CONCAT('%', #{keyword}, '%') OR email LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="gender != null">
+                AND gender = #{gender}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY id DESC
+    </select>
+
+    <!-- 新增用户 -->
+    <insert id="insert" parameterType="com.xys.entity.User" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO users(username, password, nickname, email, phone, avatar_url, gender, status)
+        VALUES(#{username}, #{password}, #{nickname}, #{email}, #{phone}, #{avatarUrl}, #{gender}, #{status})
+    </insert>
+
+    <!-- 更新用户信息 -->
+    <update id="update" parameterType="com.xys.entity.User">
+        UPDATE users SET 
+            username = #{username},
+            nickname = #{nickname},
+            email = #{email},
+            phone = #{phone},
+            avatar_url = #{avatarUrl},
+            gender = #{gender},
+            status = #{status}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID删除用户 -->
+    <delete id="deleteById" parameterType="java.lang.Long">
+        DELETE FROM users WHERE id = #{id}
+    </delete>
+
+</mapper>

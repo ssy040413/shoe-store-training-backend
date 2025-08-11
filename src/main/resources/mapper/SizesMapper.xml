@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xys.mapper.SizesMapper">
+
+    <!-- 结果映射：尺寸信息 -->
+    <resultMap id="BaseResultMap" type="com.xys.entity.Sizes">
+        <id property="sizeId" column="size_id"/>
+        <result property="shoeSize" column="shoe_size"/>
+        <result property="status" column="status"/>
+        <result property="remarks" column="remarks"/>
+    </resultMap>
+
+    <!-- 查询所有尺寸 -->
+    <select id="findAll" resultMap="BaseResultMap">
+        SELECT * FROM sizes ORDER BY size_id
+    </select>
+
+    <!-- 根据ID查询尺寸 -->
+    <select id="findById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT * FROM sizes WHERE size_id = #{sizeId}
+    </select>
+
+    <!-- 添加尺寸 -->
+    <insert id="insert" parameterType="com.xys.entity.Sizes" useGeneratedKeys="true" keyProperty="sizeId">
+        INSERT INTO sizes (shoe_size, status, remarks) 
+        VALUES (#{shoeSize}, #{status}, #{remarks})
+    </insert>
+
+    <!-- 更新尺寸 -->
+    <update id="update" parameterType="com.xys.entity.Sizes">
+        UPDATE sizes SET 
+            shoe_size = #{shoeSize}, 
+            status = #{status}, 
+            remarks = #{remarks} 
+        WHERE size_id = #{sizeId}
+    </update>
+
+    <!-- 删除尺寸 -->
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM sizes WHERE size_id = #{sizeId}
+    </delete>
+
+    <!-- 查询启用状态的尺寸 -->
+    <select id="findActiveSizes" resultMap="BaseResultMap">
+        SELECT * FROM sizes WHERE status = 1 ORDER BY size_id
+    </select>
+
+    <!-- 检查尺寸是否被商品使用 -->
+    <select id="countShoesUsingSizeId" resultType="int">
+        SELECT COUNT(*) FROM stock WHERE size_id = #{sizeId}
+    </select>
+
+</mapper>

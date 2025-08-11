@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xys.mapper.ShoesMapper">
+
+    <!-- 结果映射：基础鞋类信息 -->
+    <resultMap id="BaseResultMap" type="com.xys.entity.Shoes">
+        <id property="shoeId" column="shoe_id"/>
+        <result property="serialNumber" column="serial_number"/>
+        <result property="name" column="name"/>
+        <result property="price" column="price"/>
+        <result property="discountPrice" column="discount_price"/>
+        <result property="launchDate" column="launch_date"/>
+        <result property="originPlace" column="origin_place"/>
+        <result property="gender" column="gender"/>
+        <result property="description" column="description"/>
+        <result property="detailedInfo" column="detailed_info"/>
+        <result property="itemPoints" column="item_points"/>
+        <result property="status" column="status"/>
+        <result property="productImageUrl" column="product_image_url"/>
+        <result property="salesVolume" column="sales_volume"/>
+        <result property="colorId" column="color_id"/>
+        <result property="brandId" column="brand_id"/>
+        <result property="typeId" column="type_id"/>
+    </resultMap>
+
+    <!-- 结果映射：包含关联信息的鞋类信息 -->
+    <resultMap id="ShoesWithAssociationsResultMap" type="com.xys.entity.Shoes" extends="BaseResultMap">
+        <!-- 关联颜色信息 -->
+        <association property="color" javaType="com.xys.entity.Colors">
+            <id property="colorId" column="color_id"/>
+            <result property="colorName" column="color_name"/>
+            <result property="status" column="color_status"/>
+            <result property="remarks" column="color_remarks"/>
+        </association>
+        
+        <!-- 关联品牌信息 -->
+        <association property="brand" javaType="com.xys.entity.Brands">
+            <id property="brand_id" column="brand_id"/>
+            <result property="brand_name" column="brand_name"/>
+            <result property="status" column="brand_status"/>
+            <result property="remarks" column="brand_remarks"/>
+        </association>
+        
+        <!-- 关联类型信息 -->
+        <association property="type" javaType="com.xys.entity.Types">
+            <id property="typeId" column="type_id"/>
+            <result property="typeName" column="type_name"/>
+            <result property="status" column="type_status"/>
+        </association>
+        
+        <!-- 关联图片信息 -->
+        <collection property="productImages" ofType="com.xys.entity.ProductImage">
+            <id property="imageId" column="image_id"/>
+            <result property="shoeId" column="shoe_id"/>
+            <result property="imageUrl" column="image_url"/>
+            <result property="imageName" column="image_name"/>
+            <result property="imageType" column="image_type"/>
+            <result property="sortOrder" column="sort_order"/>
+            <result property="isMain" column="is_main"/>
+            <result property="status" column="image_status"/>
+            <result property="createdAt" column="image_created_at"/>
+            <result property="updatedAt" column="image_updated_at"/>
+        </collection>
+    </resultMap>
+
+    <!-- 查询所有产品（包含关联信息） -->
+    <select id="findAll" resultMap="ShoesWithAssociationsResultMap">
+        SELECT 
+            s.*,
+            c.color_name,
+            c.status as color_status,
+            c.remarks as color_remarks,
+            b.brand_name,
+            b.status as brand_status,
+            b.remarks as brand_remarks,
+            t.type_name,
+            t.status as type_status
+        FROM shoes s
+        LEFT JOIN colors c ON s.color_id = c.color_id
+        LEFT JOIN brands b ON s.brand_id = b.brand_id
+        LEFT JOIN types t ON s.type_id = t.type_id
+        ORDER BY s.shoe_id DESC
+    </select>
+
+    <!-- 根据ID查询产品（包含关联信息） -->
+    <select id="findById" parameterType="java.lang.Integer" resultMap="ShoesWithAssociationsResultMap">
+        SELECT 
+            s.*,
+            c.color_name,
+            c.status as color_status,
+            c.remarks as color_remarks,
+            b.brand_name,
+            b.status as brand_status,
+            b.remarks as brand_remarks,
+            t.type_name,
+            t.status as type_status,
+            pi.image_id,
+            pi.image_url,
+            pi.image_name,
+            pi.image_type,
+            pi.sort_order,
+            pi.is_main,
+            pi.status as image_status,
+            pi.created_at as image_created_at,
+            pi.updated_at as image_updated_at
+        FROM shoes s
+        LEFT JOIN colors c ON s.color_id = c.color_id
+        LEFT JOIN brands b ON s.brand_id = b.brand_id
+        LEFT JOIN types t ON s.type_id = t.type_id
+        LEFT JOIN product_images pi ON s.shoe_id = pi.shoe_id AND pi.status = 1
+        WHERE s.shoe_id = #{shoeId}
+        ORDER BY pi.is_main DESC, pi.sort_order ASC
+    </select>
+
+    <!-- 根据关键词搜索产品（包含关联信息） -->
+    <select id="findByKeyword" parameterType="java.lang.String" resultMap="ShoesWithAssociationsResultMap">
+        SELECT 
+            s.*,
+            c.color_name,
+            c.status as color_status,
+            c.remarks as color_remarks,
+            b.brand_name,
+            b.status as brand_status,
+            b.remarks as brand_remarks,
+            t.type_name,
+            t.status as type_status
+        FROM shoes s
+        LEFT JOIN colors c ON s.color_id = c.color_id
+        LEFT JOIN brands b ON s.brand_id = b.brand_id
+        LEFT JOIN types t ON s.type_id = t.type_id
+        WHERE s.name LIKE CONCAT('%', #{keyword}, '%')
+           OR s.description LIKE CONCAT('%', #{keyword}, '%')
+           OR c.color_name LIKE CONCAT('%', #{keyword}, '%')
+           OR b.brand_name LIKE CONCAT('%', #{keyword}, '%')
+           OR t.type_name LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY s.shoe_id DESC
+    </select>
+
+    <!-- 根据品牌查询产品 -->
+    <select id="findByBrandId" parameterType="java.lang.Integer" resultMap="ShoesWithAssociationsResultMap">
+        SELECT 
+            s.*,
+            c.color_name,
+            c.status as color_status,
+            c.remarks as color_remarks,
+            b.brand_name,
+            b.status as brand_status,
+            b.remarks as brand_remarks,
+            t.type_name,
+            t.status as type_status
+        FROM shoes s
+        LEFT JOIN colors c ON s.color_id = c.color_id
+        LEFT JOIN brands b ON s.brand_id = b.brand_id
+        LEFT JOIN types t ON s.type_id = t.type_id
+        WHERE s.brand_id = #{brandId}
+        ORDER BY s.shoe_id DESC
+    </select>
+
+    <!-- 根据类型查询产品 -->
+    <select id="findByTypeId" parameterType="java.lang.Integer" resultMap="ShoesWithAssociationsResultMap">
+        SELECT 
+            s.*,
+            c.color_name,
+            c.status as color_status,
+            c.remarks as color_remarks,
+            b.brand_name,
+            b.status as brand_status,
+            b.remarks as brand_remarks,
+            t.type_name,
+            t.status as type_status
+        FROM shoes s
+        LEFT JOIN colors c ON s.color_id = c.color_id
+        LEFT JOIN brands b ON s.brand_id = b.brand_id
+        LEFT JOIN types t ON s.type_id = t.type_id
+        WHERE s.type_id = #{typeId}
+        ORDER BY s.shoe_id DESC
+    </select>
+
+    <!-- 根据颜色查询产品 -->
+    <select id="findByColorId" parameterType="java.lang.Integer" resultMap="ShoesWithAssociationsResultMap">
+        SELECT 
+            s.*,
+            c.color_name,
+            c.status as color_status,
+            c.remarks as color_remarks,
+            b.brand_name,
+            b.status as brand_status,
+            b.remarks as brand_remarks,
+            t.type_name,
+            t.status as type_status
+        FROM shoes s
+        LEFT JOIN colors c ON s.color_id = c.color_id
+        LEFT JOIN brands b ON s.brand_id = b.brand_id
+        LEFT JOIN types t ON s.type_id = t.type_id
+        WHERE s.color_id = #{colorId}
+        ORDER BY s.shoe_id DESC
+    </select>
+
+    <!-- 多条件查询产品 -->
+    <select id="findByConditions" resultMap="ShoesWithAssociationsResultMap">
+        SELECT 
+            s.*,
+            c.color_name,
+            c.status as color_status,
+            c.remarks as color_remarks,
+            b.brand_name,
+            b.status as brand_status,
+            b.remarks as brand_remarks,
+            t.type_name,
+            t.status as type_status
+        FROM shoes s
+        LEFT JOIN colors c ON s.color_id = c.color_id
+        LEFT JOIN brands b ON s.brand_id = b.brand_id
+        LEFT JOIN types t ON s.type_id = t.type_id
+        <where>
+            <if test="brandId != null">
+                AND s.brand_id = #{brandId}
+            </if>
+            <if test="typeId != null">
+                AND s.type_id = #{typeId}
+            </if>
+            <if test="colorId != null">
+                AND s.color_id = #{colorId}
+            </if>
+            <if test="status != null and status != ''">
+                AND s.status = #{status}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (s.name LIKE CONCAT('%', #{keyword}, '%')
+                     OR s.description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="minPrice != null">
+                AND s.price >= #{minPrice}
+            </if>
+            <if test="maxPrice != null">
+                AND s.price &lt;= #{maxPrice}
+            </if>
+        </where>
+        ORDER BY s.shoe_id DESC
+    </select>
+
+    <!-- 插入产品 -->
+    <insert id="insert" parameterType="com.xys.entity.Shoes" useGeneratedKeys="true" keyProperty="shoeId">
+        INSERT INTO shoes (
+            serial_number, name, price, discount_price, launch_date,
+            origin_place, gender, description, detailed_info, item_points,
+            status, product_image_url, sales_volume, color_id, brand_id, type_id
+        ) VALUES (
+            #{serialNumber}, #{name}, #{price}, #{discountPrice}, #{launchDate},
+            #{originPlace}, #{gender}, #{description}, #{detailedInfo}, #{itemPoints},
+            #{status}, #{productImageUrl}, #{salesVolume}, #{colorId}, #{brandId}, #{typeId}
+        )
+    </insert>
+
+    <!-- 更新产品 -->
+    <update id="update" parameterType="com.xys.entity.Shoes">
+        UPDATE shoes SET
+            serial_number = #{serialNumber},
+            name = #{name},
+            price = #{price},
+            discount_price = #{discountPrice},
+            launch_date = #{launchDate},
+            origin_place = #{originPlace},
+            gender = #{gender},
+            description = #{description},
+            detailed_info = #{detailedInfo},
+            item_points = #{itemPoints},
+            status = #{status},
+            product_image_url = #{productImageUrl},
+            sales_volume = #{salesVolume},
+            color_id = #{colorId},
+            brand_id = #{brandId},
+            type_id = #{typeId}
+        WHERE shoe_id = #{shoeId}
+    </update>
+
+    <!-- 动态更新产品（只更新非空字段） -->
+    <update id="updateSelective" parameterType="com.xys.entity.Shoes">
+        UPDATE shoes
+        <set>
+            <if test="serialNumber != null and serialNumber != ''">
+                serial_number = #{serialNumber},
+            </if>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="price != null">
+                price = #{price},
+            </if>
+            <if test="discountPrice != null">
+                discount_price = #{discountPrice},
+            </if>
+            <if test="launchDate != null">
+                launch_date = #{launchDate},
+            </if>
+            <if test="originPlace != null and originPlace != ''">
+                origin_place = #{originPlace},
+            </if>
+            <if test="gender != null and gender != ''">
+                gender = #{gender},
+            </if>
+            <if test="description != null and description != ''">
+                description = #{description},
+            </if>
+            <if test="detailedInfo != null and detailedInfo != ''">
+                detailed_info = #{detailedInfo},
+            </if>
+            <if test="itemPoints != null">
+                item_points = #{itemPoints},
+            </if>
+            <if test="status != null and status != ''">
+                status = #{status},
+            </if>
+            <if test="productImageUrl != null and productImageUrl != ''">
+                product_image_url = #{productImageUrl},
+            </if>
+            <if test="salesVolume != null">
+                sales_volume = #{salesVolume},
+            </if>
+            <if test="colorId != null">
+                color_id = #{colorId},
+            </if>
+            <if test="brandId != null">
+                brand_id = #{brandId},
+            </if>
+            <if test="typeId != null">
+                type_id = #{typeId},
+            </if>
+        </set>
+        WHERE shoe_id = #{shoeId}
+    </update>
+
+    <!-- 删除产品 -->
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM shoes WHERE shoe_id = #{shoeId}
+    </delete>
+
+    <!-- 批量删除产品 -->
+    <delete id="deleteByIds">
+        DELETE FROM shoes WHERE shoe_id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 统计产品数量 -->
+    <select id="count" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM shoes
+    </select>
+
+    <!-- 根据条件统计产品数量 -->
+    <select id="countByConditions" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM shoes s
+        LEFT JOIN colors c ON s.color_id = c.color_id
+        LEFT JOIN brands b ON s.brand_id = b.brand_id
+        LEFT JOIN types t ON s.type_id = t.type_id
+        <where>
+            <if test="brandId != null">
+                AND s.brand_id = #{brandId}
+            </if>
+            <if test="typeId != null">
+                AND s.type_id = #{typeId}
+            </if>
+            <if test="colorId != null">
+                AND s.color_id = #{colorId}
+            </if>
+            <if test="status != null and status != ''">
+                AND s.status = #{status}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (s.name LIKE CONCAT('%', #{keyword}, '%')
+                     OR s.description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+    </select>
+
+</mapper>

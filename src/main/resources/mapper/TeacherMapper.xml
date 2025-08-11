@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xys.mapper.TeacherMapper">
+
+    <!-- 结果映射：教师信息 -->
+    <resultMap id="BaseResultMap" type="com.xys.entity.Teacher">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="age" column="age"/>
+        <result property="gender" column="gender"/>
+        <result property="email" column="email"/>
+        <result property="phone" column="phone"/>
+        <result property="subject" column="subject"/>
+        <result property="department" column="department"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 查询所有教师 -->
+    <select id="findAll" resultMap="BaseResultMap">
+        SELECT * FROM teacher
+    </select>
+
+</mapper>
