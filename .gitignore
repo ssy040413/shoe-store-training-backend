@@ -1,0 +1,32 @@
+# Maven / Java 构建产物
+/target/
+*.class
+
+# 本地 IDE 配置
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# 操作系统与运行日志
+.DS_Store
+Thumbs.db
+*.log
+/logs/
+
+# 本地环境配置与密钥
+.env
+.env.*
+!.env.example
+/src/main/resources/application-local.yml
+/src/main/resources/application-local.yaml
+/src/main/resources/application-local.properties
+*.pem
+*.key
+*.p12
+*.pfx
+
+# 运行时新增上传文件；已跟踪的样例图片仍保留
+/uploads/
